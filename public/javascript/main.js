@@ -5,11 +5,13 @@
 
   var cur_video_blob = null;
   var fb_instance;
+  var numVideosRecorded = 0;
 
   $(document).ready(function(){
     connect_to_chat_firebase();
     connect_webcam();
   });
+  
 
   function connect_to_chat_firebase(){
     /* Include your Firebase link here!*/
@@ -49,15 +51,47 @@
     // bind submission box
     $("#submission input").keydown(function( event ) {
       if (event.which == 13) {
+        //
         if(has_emotions($(this).val())){
           fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
         }else{
           fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
         }
+        //
         $(this).val("");
       }
     });
   }
+
+  function addToStream(data) {
+    var video = document.createElement("video");
+    video.className = "reaction";
+    video.autoplay = true;
+    video.controls = false; // optional
+    video.loop = true;
+    video.width = 120;
+
+    var source = document.createElement("source");
+    source.src =  URL.createObjectURL(base64_to_blob(data));
+    source.type =  "video/webm";
+
+    video.appendChild(source);
+
+    // for gif instead, use this code below and change mediaRecorder.mimeType in onMediaSuccess below
+    // var video = document.createElement("img");
+    // video.src = URL.createObjectURL(base64_to_blob(data.v));
+    var reactions = document.getElementById("reactions");
+    if (numVideosRecorded >= 3) {
+      $(".reaction").each(function(i, val) {
+        $(this).animate({left:'200px'});
+      }
+      reactions.removeChild(reactions.firstChild);
+    }
+    reactions.appendChild(video);
+    numVideosRecorded++;
+    scroll_to_bottom(0);
+  }
+
 
   // creates a message node and appends it to the conversation
   function display_msg(data){
@@ -118,13 +152,6 @@
       video.play();
       webcam_stream.appendChild(video);
 
-      // counter
-      var time = 0;
-      var second_counter = document.getElementById('second_counter');
-      var second_counter_update = setInterval(function(){
-        second_counter.innerHTML = time++;
-      },1000);
-
       // now record stream in 5 seconds interval
       var video_container = document.getElementById('video_container');
       var mediaRecorder = new MediaStreamRecorder(stream);
@@ -142,13 +169,15 @@
 
           // convert data into base 64 blocks
           blob_to_base64(blob,function(b64_data){
-            cur_video_blob = b64_data;
+            addToStream(b64_data);
+            //fb_instance_clips.push({m:username+": " +$(this).val(), v:b64_data, c: my_color});
+            //cur_video_blob = b64_data;
           });
-      };
-      setInterval( function() {
-        mediaRecorder.stop();
-        mediaRecorder.start(3000);
-      }, 3000 );
+        };
+        setInterval( function() {
+          mediaRecorder.stop();
+          mediaRecorder.start(3000);
+        }, 3000 );
       console.log("connect to media stream!");
     }
 
