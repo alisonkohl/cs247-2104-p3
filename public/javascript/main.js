@@ -3,6 +3,8 @@
 
 (function() {
 
+  var first_video_blob = null;
+  var second_video_blob = null;
   var cur_video_blob = null;
   var fb_instance;
   var numVideosRecorded = 0;
@@ -51,16 +53,23 @@
     // bind submission box
     $("#submission input").keydown(function( event ) {
       if (event.which == 13) {
-        //
-        if(has_emotions($(this).val())){
-          fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
-        }else{
-          fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
-        }
-        //
+        fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
         $(this).val("");
       }
     });
+
+    $("#reactions").on('click', '.reaction', function() {
+      var videoIndex = $(this).index();
+      if (videoIndex == 0) fb_instance_stream.push({m:username+": " +$(this).val(), v:first_video_blob, c: my_color});
+      if (videoIndex == 1) fb_instance_stream.push({m:username+": " +$(this).val(), v:second_video_blob, c: my_color});
+      if (videoIndex == 2) fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
+    });
+  }
+
+  function sleep(ms) {
+    var currentTime = new Date().getTime();
+    while (currentTime + ms >= new Date().getTime()) {
+    }
   }
 
   function addToStream(data) {
@@ -82,9 +91,6 @@
     // video.src = URL.createObjectURL(base64_to_blob(data.v));
     var reactions = document.getElementById("reactions");
     if (numVideosRecorded >= 3) {
-      $(".reaction").each(function(i, val) {
-        $(this).animate({left:'200px'});
-      }
       reactions.removeChild(reactions.firstChild);
     }
     reactions.appendChild(video);
@@ -169,9 +175,15 @@
 
           // convert data into base 64 blocks
           blob_to_base64(blob,function(b64_data){
+            if (numVideosRecorded == 0) first_video_blob = b64_data;
+            else if (numVideosRecorded == 1) second_video_blob = b64_data;
+            else if (numVideosRecorded == 2) cur_video_blob = b64_data;
+            else {
+              first_video_blob = second_video_blob;
+              second_video_blob = cur_video_blob;
+              cur_video_blob = b64_data;
+            }
             addToStream(b64_data);
-            //fb_instance_clips.push({m:username+": " +$(this).val(), v:b64_data, c: my_color});
-            //cur_video_blob = b64_data;
           });
         };
         setInterval( function() {

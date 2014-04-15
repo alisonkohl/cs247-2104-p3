@@ -22,12 +22,23 @@ a {
   z-index: 999;
 }
 #conversation {
-  padding: 10px 10px 80px;
+  padding: 10px 10px 160px;
   overflow-y: scroll;
   height: 100%;
 }
+
+#reactions {
+  margin-bottom: 10px;
+}
+
+.reaction {
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
 #submission {
   position: fixed;
+  height: 162px;
   bottom: 0;
   width: 100%;
   right: 0;
@@ -35,6 +46,8 @@ a {
   background: #fff;
 }
 #submission input {
+  position: fixed;
+  bottom: 0px;
   border: none;
   font-size: 15px;
   padding: 15px;
